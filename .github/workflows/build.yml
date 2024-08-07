@@ -302,6 +302,7 @@ jobs:
           # Main
           bazel build -c opt --define tflite_with_xnnpack=true tensorflow/lite/c:tensorflowlite_c
           cp -f bazel-bin/tensorflow/lite/c/tensorflowlite_c.dll artifact
+          cp -f bazel-bin/tensorflow/lite/c/tensorflowlite_c.dll.if.lib artifact
 
           mv artifact/ "${{ matrix.artifact_name }}-${{ env.VERSION }}"
           7z a "${{ matrix.artifact_name }}-${{ env.VERSION }}.zip" "${{ matrix.artifact_name }}-${{ env.VERSION }}"
