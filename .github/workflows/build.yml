@@ -11,20 +11,19 @@ on:
         required: true
       repository:
         description: "Name of a target repository"
-        default: 'tensorflow/tensorflow'
+        default: "tensorflow/tensorflow"
         required: false
 
 permissions:
   contents: write
 
 env:
-  TF_PYTHON_VERSION: '3.10'
+  TF_PYTHON_VERSION: "3.10"
   VERSION:
     |- # Enter release tag name or version in workflow_dispatch. Recent version if not specified
     ${{ github.event.release.tag_name || github.event.inputs.version || '2.15.0' }}
-  REPOSITORY:
-    ${{ github.event.inputs.repository || 'tensorflow/tensorflow' }}
-  
+  REPOSITORY: ${{ github.event.inputs.repository || 'tensorflow/tensorflow' }}
+
 jobs:
   build-android:
     runs-on: ubuntu-22.04
@@ -43,7 +42,7 @@ jobs:
     env:
       ANDROID_SDK_API_LEVEL: 31
       ANDROID_NDK_API_LEVEL: 26
-      ANDROID_BUILD_TOOLS_VERSION: '31.0.0'
+      ANDROID_BUILD_TOOLS_VERSION: "31.0.0"
     steps:
       - uses: actions/checkout@v3
         with:
@@ -74,7 +73,7 @@ jobs:
           # Main
           bazel build -c opt --config=${{ matrix.config }} --cxxopt=--std=c++17 --define=xnn_enable_arm_fp16=false --define=xnn_enable_arm_i8mm=false tensorflow/lite/c:tensorflowlite_c
           cp -f bazel-bin/tensorflow/lite/c/libtensorflowlite_c.so artifact
-          
+
           # GPU Delegate
           bazel build -c opt --config=${{ matrix.config }} --cxxopt=--std=c++17 --define=xnn_enable_arm_fp16=false --define=xnn_enable_arm_i8mm=false --copt -Os --copt -DTFLITE_GPU_BINARY_RELEASE --copt -fvisibility=hidden --linkopt -s --strip always tensorflow/lite/delegates/gpu:libtensorflowlite_gpu_delegate.so
           cp -f bazel-bin/tensorflow/lite/delegates/gpu/libtensorflowlite_gpu_delegate.so artifact
@@ -97,7 +96,7 @@ jobs:
           # Main
           bazel build -c opt --fat_apk_cpu=arm64-v8a,armeabi-v7a,x86_64 --cxxopt=--std=c++17 --define=xnn_enable_arm_fp16=false --define=xnn_enable_arm_i8mm=false --host_crosstool_top=@bazel_tools//tools/cpp:toolchain --define=android_dexmerger_tool=d8_dexmerger --define=android_incremental_dexing_tool=d8_dexbuilder tensorflow/lite/java:tensorflow-lite
           cp -f bazel-bin/tensorflow/lite/java/tensorflow-lite.aar artifact
-          
+
           # GPU Delegate
           bazel build -c opt --fat_apk_cpu=arm64-v8a,armeabi-v7a,x86_64 --cxxopt=--std=c++17 --define=xnn_enable_arm_fp16=false --define=xnn_enable_arm_i8mm=false --host_crosstool_top=@bazel_tools//tools/cpp:toolchain --define=android_dexmerger_tool=d8_dexmerger --define=android_incremental_dexing_tool=d8_dexbuilder tensorflow/lite/java:tensorflow-lite-gpu
           cp -f bazel-bin/tensorflow/lite/java/tensorflow-lite-gpu.aar artifact
@@ -143,7 +142,7 @@ jobs:
           mv tensorflow/lite/swift/BUILD.apple tensorflow/lite/swift/BUILD
 
           mkdir -p artifact
-          
+
           # Main
           bazel build -c opt --config=${{ matrix.config }} --cxxopt=--std=c++17 tensorflow/lite/ios:TensorFlowLiteC_framework
           unzip -o bazel-bin/tensorflow/lite/ios/TensorFlowLiteC_framework.zip -d artifact
@@ -151,7 +150,7 @@ jobs:
           # Metal Delegate
           bazel build -c opt --config=${{ matrix.config }} --cxxopt=--std=c++17 tensorflow/lite/ios:TensorFlowLiteCMetal_framework
           unzip -o bazel-bin/tensorflow/lite/ios/TensorFlowLiteCMetal_framework.zip -d artifact
-          
+
           # CoreML Delegate
           bazel build -c opt --config=${{ matrix.config }} --cxxopt=--std=c++17 tensorflow/lite/ios:TensorFlowLiteCCoreML_framework
           unzip -o bazel-bin/tensorflow/lite/ios/TensorFlowLiteCCoreML_framework.zip -d artifact
@@ -255,8 +254,10 @@ jobs:
   build-macos-universal:
     needs: [build-macos]
     runs-on: macos-12
-    steps:  
+    steps:
       - uses: actions/download-artifact@v4
+      - name: Display structure of downloaded files
+        run: ls -R path/to/artifacts
       - name: Build universal binary
         run: |
           mkdir -p artifact
@@ -271,7 +272,7 @@ jobs:
 
   build-windows:
     # Using windows-2019 as build is broken on windows-latest runner due to another
-    # See: https://github.com/bazelbuild/bazel/issues/18592  
+    # See: https://github.com/bazelbuild/bazel/issues/18592
     runs-on: windows-2019
     strategy:
       fail-fast: false
@@ -312,9 +313,16 @@ jobs:
           tag_name: ${{ env.VERSION }}
 
   release:
-    needs: [build-android, build-ios, build-linux, build-macos-universal, build-windows]
+    needs:
+      [
+        build-android,
+        build-ios,
+        build-linux,
+        build-macos-universal,
+        build-windows,
+      ]
     runs-on: ubuntu-latest
-    steps:  
+    steps:
       - uses: softprops/action-gh-release@v1
         with:
           name: TFLite Runtime v${{ env.VERSION }}
