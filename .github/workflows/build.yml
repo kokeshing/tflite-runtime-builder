@@ -260,8 +260,8 @@ jobs:
       - name: Build universal binary
         run: |
           mkdir -p artifact
-          lipo -create -output artifact/libtensorflowlite_c.dylib "tflite-runtime-osx-x86_64-${{ env.VERSION }}/libtensorflowlite_c.dylib" "tflite-runtime-osx-arm64-${{ env.VERSION }}/libtensorflowlite_c.dylib"
-          lipo -create -output artifact/libtensorflowlite_metal_delegate.dylib "tflite-runtime-osx-x86_64-${{ env.VERSION }}/libtensorflowlite_metal_delegate.dylib" "tflite-runtime-osx-arm64-${{ env.VERSION }}/libtensorflowlite_metal_delegate.dylib"
+          lipo -create -output artifact/libtensorflowlite_c.dylib "tflite-runtime-osx-x86_64/libtensorflowlite_c.dylib" "tflite-runtime-osx-arm64/libtensorflowlite_c.dylib"
+          lipo -create -output artifact/libtensorflowlite_metal_delegate.dylib "tflite-runtime-osx-x86_64/libtensorflowlite_metal_delegate.dylib" "tflite-runtime-osx-arm64/libtensorflowlite_metal_delegate.dylib"
           mv artifact/ "tflite-runtime-osx-universal2-${{ env.VERSION }}"
           tar cfz "tflite-runtime-osx-universal2-${{ env.VERSION }}.tgz" "tflite-runtime-osx-universal2-${{ env.VERSION }}"
       - uses: softprops/action-gh-release@v1
