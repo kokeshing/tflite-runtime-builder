@@ -289,6 +289,8 @@ jobs:
           # Metal Delegate
           bazel build --config=${{ matrix.config }} --macos_cpus=${{ matrix.cpu }} --cxxopt=--std=c++17 ${{ inputs.xnn_options }} -c opt --copt -Os --copt -DTFLITE_GPU_BINARY_RELEASE --copt -fvisibility=default --linkopt -s --strip always tensorflow/lite/delegates/gpu:tensorflow_lite_gpu_dylib
           cp -f bazel-bin/tensorflow/lite/delegates/gpu/tensorflow_lite_gpu_dylib.dylib artifact/libtensorflowlite_metal_delegate.dylib
+          install_name_tool -id @rpath/libtensorflowlite_metal_delegate.dylib artifact/libtensorflowlite_metal_delegate.dylib
+          codesign --force -s - artifact/libtensorflowlite_metal_delegate.dylib
 
           mv artifact/ "${{ matrix.artifact_name }}-${{ env.VERSION }}"
           tar cfz "${{ matrix.artifact_name }}-${{ env.VERSION }}.tgz" "${{ matrix.artifact_name }}-${{ env.VERSION }}"
